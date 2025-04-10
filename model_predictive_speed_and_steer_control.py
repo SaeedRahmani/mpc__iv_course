@@ -1,8 +1,9 @@
 """
-Path tracking simulation with MPC controller for speed and steering
-with support for custom user-defined trajectories
 
-Modified from original by Atsushi Sakai (@Atsushi_twi)
+Path tracking simulation with iterative linear model predictive control for speed and steer control
+
+author: Atsushi Sakai (@Atsushi_twi)
+
 """
 import matplotlib.pyplot as plt
 import time
@@ -11,19 +12,9 @@ import math
 import numpy as np
 import sys
 import pathlib
-import argparse
-
-# Add the parent directory to the path
 sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
 
-# Import from the project
 from utils.angle import angle_mod
-from PathPlanning.CubicSpline import cubic_spline_planner
-# from PathTracking.model_predictive_speed_and_steer_control.model_predictive_speed_and_steer_control import (
-#     State, do_simulation, calc_speed_profile, TARGET_SPEED
-# )
-# Import your trajectory configuration
-from trajectory_config import TRAJECTORIES, DEFAULT_TRAJECTORY
 
 from PathPlanning.CubicSpline import cubic_spline_planner
 
@@ -553,173 +544,84 @@ def get_switch_back_course(dl):
 
     return cx, cy, cyaw, ck
 
-def create_custom_trajectory(waypoints, dl=1.0):
-    """
-    Create a trajectory from user-defined waypoints.
-    
-    Parameters
-    ----------
-    waypoints : list of tuples
-        List of (x, y) coordinates defining the waypoints of the trajectory
-    dl : float, optional
-        Distance between interpolated points, by default 1.0
-        
-    Returns
-    -------
-    tuple
-        (cx, cy, cyaw, ck) - course x, y, yaw, and curvature lists
-    """
-    ax = [point[0] for point in waypoints]
-    ay = [point[1] for point in waypoints]
-    
-    cx, cy, cyaw, ck, _ = cubic_spline_planner.calc_spline_course(ax, ay, ds=dl)
-    
-    return cx, cy, cyaw, ck
 
 def main():
-    parser = argparse.ArgumentParser(description='Run MPC with custom trajectory')
-    parser.add_argument('--trajectory', '-t', 
-                        choices=list(TRAJECTORIES.keys()),
-                        default=DEFAULT_TRAJECTORY,
-                        help='Choose a predefined trajectory')
-    parser.add_argument('--speed', '-s', type=float, default=TARGET_SPEED*3.6,
-                    help=f'Target speed in km/h (default: {TARGET_SPEED*3.6})')
-    parser.add_argument('--dl', type=float, default=1.0,
-                        help='Distance between interpolated points (default: 1.0)')
-    parser.add_argument('--no-animation', action='store_true',
-                        help='Disable animation for faster computation')
-    
-    args = parser.parse_args()
-    
-    # Set animation flag
-    # import PathTracking.model_predictive_speed_and_steer_control.model_predictive_speed_and_steer_control as mpc_module
-    # mpc_module.show_animation = not args.no_animation
-    show_animation = not args.no_animation
-    
-    print(f"Generating trajectory: {args.trajectory}")
-    print(f"Target speed: {args.speed} m/s")
-    
-    # Get waypoints for the selected trajectory
-    waypoints = TRAJECTORIES[args.trajectory]()
-    
-    # Create a trajectory from waypoints
-    dl = args.dl
-    cx, cy, cyaw, ck = create_custom_trajectory(waypoints, dl)
-    
-    # Calculate speed profile
-    sp = calc_speed_profile(cx, cy, cyaw, args.speed / 3.6)  # Convert km/h to m/s
-    
-    # Set initial state to the beginning of the trajectory
+    print(__file__ + " start!!")
+    start = time.time()
+
+    dl = 1.0  # course tick
+    # cx, cy, cyaw, ck = get_straight_course(dl)
+    # cx, cy, cyaw, ck = get_straight_course2(dl)
+    # cx, cy, cyaw, ck = get_straight_course3(dl)
+    # cx, cy, cyaw, ck = get_forward_course(dl)
+    cx, cy, cyaw, ck = get_switch_back_course(dl)
+
+    sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
+
     initial_state = State(x=cx[0], y=cy[0], yaw=cyaw[0], v=0.0)
-    
-    # Run simulation
-    start_time = time.time()
+
     t, x, y, yaw, v, d, a = do_simulation(
         cx, cy, cyaw, ck, sp, dl, initial_state)
-    
-    elapsed_time = time.time() - start_time
-    print(f"Simulation completed in {elapsed_time:.4f} seconds")
-    
-    # Plot results if animation was disabled
-    if args.no_animation:
-        plt.figure(figsize=(12, 9))
-        
-        plt.subplot(2, 1, 1)
-        plt.plot(cx, cy, "-r", label="reference path")
-        plt.plot(x, y, "-g", label="tracking path")
+
+    elapsed_time = time.time() - start
+    print(f"calc time:{elapsed_time:.6f} [sec]")
+
+    if show_animation:  # pragma: no cover
+        plt.close("all")
+        plt.subplots()
+        plt.plot(cx, cy, "-r", label="spline")
+        plt.plot(x, y, "-g", label="tracking")
         plt.grid(True)
         plt.axis("equal")
         plt.xlabel("x[m]")
         plt.ylabel("y[m]")
         plt.legend()
-        plt.title(f"Trajectory: {args.trajectory}")
-        
-        plt.subplot(2, 1, 2)
-        plt.plot(t, [speed * 3.6 for speed in v], "-r", label="speed")
+
+        plt.subplots()
+        plt.plot(t, v, "-r", label="speed")
         plt.grid(True)
         plt.xlabel("Time [s]")
-        plt.ylabel("Speed [km/h]")
-        plt.legend()
-        
-        plt.tight_layout()
+        plt.ylabel("Speed [kmh]")
+
         plt.show()
-        
-# def main():
-#     print(__file__ + " start!!")
-#     start = time.time()
-
-#     dl = 1.0  # course tick
-#     # cx, cy, cyaw, ck = get_straight_course(dl)
-#     # cx, cy, cyaw, ck = get_straight_course2(dl)
-#     # cx, cy, cyaw, ck = get_straight_course3(dl)
-#     # cx, cy, cyaw, ck = get_forward_course(dl)
-#     cx, cy, cyaw, ck = get_switch_back_course(dl)
-
-#     sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
-
-#     initial_state = State(x=cx[0], y=cy[0], yaw=cyaw[0], v=0.0)
-
-#     t, x, y, yaw, v, d, a = do_simulation(
-#         cx, cy, cyaw, ck, sp, dl, initial_state)
-
-#     elapsed_time = time.time() - start
-#     print(f"calc time:{elapsed_time:.6f} [sec]")
-
-#     if show_animation:  # pragma: no cover
-#         plt.close("all")
-#         plt.subplots()
-#         plt.plot(cx, cy, "-r", label="spline")
-#         plt.plot(x, y, "-g", label="tracking")
-#         plt.grid(True)
-#         plt.axis("equal")
-#         plt.xlabel("x[m]")
-#         plt.ylabel("y[m]")
-#         plt.legend()
-
-#         plt.subplots()
-#         plt.plot(t, v, "-r", label="speed")
-#         plt.grid(True)
-#         plt.xlabel("Time [s]")
-#         plt.ylabel("Speed [kmh]")
-
-#         plt.show()
 
 
-# def main2():
-#     print(__file__ + " start!!")
-#     start = time.time()
+def main2():
+    print(__file__ + " start!!")
+    start = time.time()
 
-#     dl = 1.0  # course tick
-#     cx, cy, cyaw, ck = get_straight_course3(dl)
+    dl = 1.0  # course tick
+    cx, cy, cyaw, ck = get_straight_course3(dl)
 
-#     sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
+    sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
 
-#     initial_state = State(x=cx[0], y=cy[0], yaw=0.0, v=0.0)
+    initial_state = State(x=cx[0], y=cy[0], yaw=0.0, v=0.0)
 
-#     t, x, y, yaw, v, d, a = do_simulation(
-#         cx, cy, cyaw, ck, sp, dl, initial_state)
+    t, x, y, yaw, v, d, a = do_simulation(
+        cx, cy, cyaw, ck, sp, dl, initial_state)
 
-#     elapsed_time = time.time() - start
-#     print(f"calc time:{elapsed_time:.6f} [sec]")
+    elapsed_time = time.time() - start
+    print(f"calc time:{elapsed_time:.6f} [sec]")
 
-#     if show_animation:  # pragma: no cover
-#         plt.close("all")
-#         plt.subplots()
-#         plt.plot(cx, cy, "-r", label="spline")
-#         plt.plot(x, y, "-g", label="tracking")
-#         plt.grid(True)
-#         plt.axis("equal")
-#         plt.xlabel("x[m]")
-#         plt.ylabel("y[m]")
-#         plt.legend()
+    if show_animation:  # pragma: no cover
+        plt.close("all")
+        plt.subplots()
+        plt.plot(cx, cy, "-r", label="spline")
+        plt.plot(x, y, "-g", label="tracking")
+        plt.grid(True)
+        plt.axis("equal")
+        plt.xlabel("x[m]")
+        plt.ylabel("y[m]")
+        plt.legend()
 
-#         plt.subplots()
-#         plt.plot(t, v, "-r", label="speed")
-#         plt.grid(True)
-#         plt.xlabel("Time [s]")
-#         plt.ylabel("Speed [kmh]")
+        plt.subplots()
+        plt.plot(t, v, "-r", label="speed")
+        plt.grid(True)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Speed [kmh]")
 
-#         plt.show()
+        plt.show()
+
 
 if __name__ == '__main__':
     main()
