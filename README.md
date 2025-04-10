@@ -1,6 +1,6 @@
 # Model Predictive Control with Custom Trajectories
 
-This project allows you to test Model Predictive Control (MPC) algorithms on custom trajectories for autonomous vehicle path tracking.
+This project allows you to test Model Predictive Control (MPC) algorithms on custom trajectories for autonomous vehicle path tracking. It features both a command-line interface and a graphical user interface for trajectory design and MPC parameter tuning.
 
 ## Getting Started
 
@@ -18,6 +18,7 @@ This project requires Python 3.6+ and the following libraries:
 - scipy
 - matplotlib
 - cvxpy (for solving optimization problems)
+- tkinter (for the GUI)
 
 Install these dependencies using pip:
 
@@ -25,77 +26,83 @@ Install these dependencies using pip:
 pip install numpy scipy matplotlib cvxpy
 ```
 
+Note: tkinter is usually included with Python installations, but if needed:
+```bash
+# For Ubuntu/Debian
+sudo apt-get install python3-tk
+
+# For macOS (with Homebrew)
+brew install python-tk
+
+# For Windows (if not already included)
+# Typically included by default. If missing:
+pip install tk
+# Or reinstall Python with the "tcl/tk and IDLE" option checked
+```
+
 ### File Structure
 
 ```
 .
 ├── README.md
-├── trajectory_config.py        # Define custom trajectories here (or through the run_gui.py file)
-├── mpc.py                      # Command-line version of mpc (for modifying the mpc and testing it)
-├── run_gui.py                  # GUI version (you need to run this for your assignment)
-├── PathPlanning/               # This is a lib folder.
+├── trajectory_config.py        # Define custom trajectories here
+├── mpc.py                      # Core MPC implementation
+├── run_gui.py                  # GUI for trajectory design and MPC parameter tuning
+├── PathPlanning/               # Library folder for path planning
 │   └── CubicSpline/
 │       └── cubic_spline_planner.py
-├── PathTracking/               # This is a lib folder
-│   └── model_predictive_speed_and_steer_control/
-│       └── model_predictive_speed_and_steer_control.py
-└── utils/                      # This is a util folder 
-    └── angle.py
+├── utils/                      # Utility functions
+│   ├── angle.py                # Angle manipulation utilities
+│   └── plot.py                 # Plotting utilities
 ```
 
 ## Usage Options
 
 ### Option 1: Using Command Line
 
-Run the command-line version to test predefined trajectories and your mpc implementation:
+Run the command-line version to test predefined trajectories with your MPC implementation:
 
-For example:
 ```bash
-python mpc_with_custom_trajectory.py --trajectory circular --speed 2.777
+python mpc.py --trajectory circular --speed 10.0
 ```
 
 Available options:
-- `--trajectory` or `-t`: Choose from predefined trajectories (`circular`, `figure_eight`, `slalom`, `custom`)
-- `--speed` or `-s`: Target speed in m/s -- default: 2.777
-- `--dl`: Distance between interpolated points -- default: 1.0
+- `--trajectory` or `-t`: Choose from predefined trajectories (`straight`, `wavy`, `spline`, `circular`, `eternity`, `slalom`, `custom`)
+- `--speed` or `-s`: Target speed in km/h (default: 10.0)
+- `--dl`: Distance between interpolated points (default: 1.0)
 - `--no-animation`: Disable animation for faster computation
 
-### Option 2: Using the GUI
+### Option 2: Using the GUI (Recommended)
 
-Run the GUI version for interactive trajectory design:
-NOTE: You'll need to change mpc.py file if you need to improve the mpc behavior.
+Run the GUI version for interactive trajectory design and MPC parameter tuning:
 
 ```bash
-python mpc_trajectory_gui.py
+python run_gui.py
 ```
 
 With the GUI, you can:
-- Select predefined trajectories
-- Create custom trajectories
-- Set simulation parameters
-- Run the MPC simulation with your custom trajectory (only running)
+- Select from predefined trajectories
+- Create custom trajectories by clicking on the plot
+- Configure trajectory generation parameters
+- Tune MPC controller parameters
+- Adjust vehicle constraints
+- Run simulations and visualize results
+- View simulation logs
 
 ## Creating Your Own Trajectories
 
-### Method 1: Using the GUI
+### Method 1: Using the GUI (Recommended)
 
-1. Choose custom from the menue
-2. Click on clear points to clear the current trajectory
-3. Make your waypoints by clicking on the plot (you can add several points). Try to keep in mind the vehicle should be able to follow the points considering its kinematic constrains
-4. When you are done with your waypoints, click on "Mark as Last Point".
-5. Click "Use Custom Points" to save your trajectory
-6. Click "Run Simulation" to test your trajectory with MPC
-
-## Understanding the MPC Parameters
-
-The MPC controller has several parameters that affect performance:
-
-- **Prediction Horizon (T)**: How far ahead the controller predicts (default: 5 steps)
-- **Cost Matrices (Q, R, Rd)**: Weights for state tracking error, control input, and input changes
-- **Time Step (DT)**: Simulation time step (default: 0.2s)
-- **Vehicle Parameters**: Wheelbase, max steering angle, max acceleration, etc.
-
-These can be modified in the original MPC implementation file if needed.
+1. Launch the GUI by running `python run_gui.py`
+2. In the Trajectory tab, select "Custom" from the dropdown
+3. Click "Clear Points" to start fresh
+4. Click on the plot area to place waypoints for your custom trajectory
+   - The plot area is fixed from -100 to 100 in both x and y coordinates
+5. When you've finished adding points, click "Use These Points"
+6. Optiona: At each time, click "Update Preview" to see the spline trajectory
+7. Click "Run Simulation" to test your trajectory with the MPC controller
+8. What do you observe? Try to improve the performance of the trajectory following by changing both the parameters of MPC and reference trajectory
+9. What is the effect of vehicle parameters?
 
 ### Method 2: Editing the Configuration File
 
@@ -103,6 +110,7 @@ Open `trajectory_config.py` and add your own function that returns a list of (x,
 
 ```python
 def my_custom_path():
+    # Define your waypoints as a list of (x, y) coordinates
     waypoints = [
         (0.0, 0.0),    # Starting point
         (10.0, 10.0),  # Second point
@@ -115,29 +123,89 @@ def my_custom_path():
 TRAJECTORIES["my_custom"] = my_custom_path
 ```
 
-## Tips for Successful Trajectories
+## Tuning MPC Parameters
 
-1. **Smoothness**: The cubic spline will create a smooth path, but waypoints that are too close or have sharp angles may cause issues
-2. **Feasibility**: Consider the vehicle's physical constraints (max steering angle, acceleration limits)
-3. **Complexity**: Start with simple trajectories and gradually increase complexity
-4. **Speed Profile**: The default speed profile is constant, but you can experiment with variable speeds
+The GUI provides comprehensive options for tuning the MPC controller:
+
+### MPC Parameters Tab
+- **Prediction and Control**
+  - Prediction Horizon (T): Number of prediction steps
+  - Time Step (DT): Simulation time step
+  - Max Iterations: Maximum iterations for the MPC optimization
+
+- **Cost Matrices**
+  - State Cost Matrix (Q): Weights for state tracking error
+    - Q1: x position error weight
+    - Q2: y position error weight
+    - Q3: velocity error weight
+    - Q4: yaw error weight
+  - Input Cost Matrix (R): Weights for control input magnitudes
+    - R1: acceleration input weight
+    - R2: steering input weight
+  - Input Difference Cost Matrix (Rd): Weights for control input changes
+    - Rd1: acceleration change weight
+    - Rd2: steering change weight
+
+### Vehicle Parameters Tab
+- **Vehicle Constraints**
+  - Max Steering Angle: Maximum steering angle in degrees
+  - Max Steering Speed: Maximum steering angle change rate in degrees/s
+  - Max Speed: Maximum vehicle speed in km/h
+  - Max Acceleration: Maximum acceleration in m/s²
+
+- **Vehicle Physical Properties**
+  - Wheelbase (WB): Distance between front and rear axles in meters
+
+## Understanding the MPC Algorithm
+
+The implemented MPC controller uses:
+- A kinematic bicycle model for vehicle dynamics
+- Linearization at the operating point for efficient optimization
+- Iterative optimization to handle nonlinearities
+- CVXPY with the CLARABEL solver for solving the optimization problem (check what is the effect of solver on the performance)
+
+The cost function includes:
+- Tracking error costs (position, velocity, orientation)
+- Control input costs (acceleration, steering)
+- Control rate costs (changes in acceleration and steering)
 
 ## Analyzing Results
 
 The simulation outputs:
-- Tracking performance (reference vs. actual path)
-- Speed profile over time
-- Control inputs (acceleration and steering angle)
+- Trajectory tracking visualization
+- Speed profile over time (Can you add it?)
+- Steering angles over time (Can you add it?)
+- Simulation logs with performance metrics (what is missing? Can you add it?)
 
-Look for:
-- How closely the vehicle follows the reference path
-- If the vehicle respects its physical constraints
-- Where the controller struggles (tight curves, etc.)
+The log tab in the GUI provides detailed information about:
+- Applied MPC and vehicle parameters
+- Simulation time and speed
+- Maximum steering angles used
+- Any errors encountered during simulation
 
 ## Troubleshooting
 
-- **Solver Errors**: May indicate an infeasible trajectory or constraints
-- **Slow Simulation**: Try using `--no-animation` flag for faster computation
-- **Path Following Issues**: Check if waypoints are reasonable for the vehicle constraints
+- **Solver Errors**: These may indicate an infeasible trajectory or too aggressive constraints
+  - Try reducing the target speed
+  - Increase the prediction horizon
+  - Adjust the cost weights to prioritize different aspects
 
-Good luck with your MPC experiments!
+- **Slow Simulation**: For faster execution:
+  - Use the command-line version with `--no-animation`
+  - Reduce the prediction horizon (T)
+  - Increase the time step (DT)
+
+- **Path Following Issues**: If the vehicle struggles to follow the path:
+  - Increase position weights (Q1, Q2) in the cost matrix
+  - Reduce the target speed
+  - Ensure the trajectory doesn't have overly tight turns relative to the vehicle constraints
+  - Adjust the steering weights to allow more aggressive steering
+
+## License
+
+This project is provided for educational purposes.
+
+## Acknowledgments
+
+- Original MPC implementation by Atsushi Sakai (@Atsushi_twi)
+- Based on the PythonRobotics repository
