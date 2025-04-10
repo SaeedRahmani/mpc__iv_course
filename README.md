@@ -79,9 +79,12 @@ With the GUI, you can:
 
 ### Method 1: Using the GUI
 
-1. Click on the plot to add waypoints
-2. Click "Use Custom Points" to save your trajectory
-3. Click "Run Simulation" to test your trajectory with MPC
+1. Choose custom from the menue
+2. Click on clear points to clear the current trajectory
+3. Make your waypoints by clicking on the plot (you can add several points). Try to keep in mind the vehicle should be able to follow the points considering its kinematic constrains
+4. When you are done with your waypoints, click on "Mark as Last Point".
+5. Click "Use Custom Points" to save your trajectory
+6. Click "Run Simulation" to test your trajectory with MPC
 
 ## Understanding the MPC Parameters
 
