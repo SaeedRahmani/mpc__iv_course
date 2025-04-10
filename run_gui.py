@@ -55,7 +55,7 @@ class MPCTrajectoryGUI:
         # Default values
         self.dl_var.set("1.0")
         self.speed_var.set("10.0")         # 10.0 / 3.6 m/s (as in the original code)
-        self.trajectory_var.set("circular")
+        self.trajectory_var.set("Circular")
         self.update_trajectory_preview()
     
     def create_widgets(self):
@@ -106,7 +106,7 @@ class MPCTrajectoryGUI:
         trajectory_combo.bind("<<ComboboxSelected>>", lambda e: self.update_trajectory_preview())
         
         # Parameters
-        params_frame = ttk.LabelFrame(trajectory_tab, text="Simulation Parameters", padding="10")
+        params_frame = ttk.LabelFrame(trajectory_tab, text="Trajectory Generation Parameter", padding="10")
         params_frame.pack(fill=tk.X, pady=(0, 10))
         
         # DL parameter
@@ -119,32 +119,35 @@ class MPCTrajectoryGUI:
         # Speed parameter
         speed_frame = ttk.Frame(params_frame)
         speed_frame.pack(fill=tk.X, pady=5)
-        ttk.Label(speed_frame, text="Target Speed (km/h):").pack(side=tk.LEFT)
+        ttk.Label(speed_frame, text="Reference Speed (km/h):").pack(side=tk.LEFT)
         self.speed_var = tk.StringVar()
         ttk.Entry(speed_frame, textvariable=self.speed_var, width=10).pack(side=tk.RIGHT)
         
+        preview_frame = ttk.Frame(params_frame)
+        preview_frame.pack(fill=tk.X, pady=5)
+        ttk.Button(preview_frame, text="Update Preview", command=self.update_trajectory_preview).pack(side=tk.LEFT, padx=2)
+
+        
         # Custom trajectory editor
         custom_frame = ttk.LabelFrame(trajectory_tab, text="Custom Trajectory Editor", padding="10")
-        custom_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        custom_frame.pack(fill=tk.X, expand=False, pady=(0, 10), ipady=5)
         
-        ttk.Label(custom_frame, text="Define your own trajectory by clicking on the plot").pack()
-        ttk.Label(custom_frame, text="(Plot area is fixed to -50 to 50 range)").pack()
+        ttk.Label(custom_frame, text="Define your own trajectory by multiple clicking on the plot").pack()
+        ttk.Label(custom_frame, text="(Plot area is fixed. You can change it in the code if needed.)").pack()
         
         # Buttons for custom trajectory
         buttons_frame = ttk.Frame(custom_frame)
         buttons_frame.pack(fill=tk.X, pady=5)
         
         ttk.Button(buttons_frame, text="Clear Points", command=self.clear_points).pack(side=tk.LEFT, padx=2)
-        ttk.Button(buttons_frame, text="Mark as Last Point", command=self.mark_last_point).pack(side=tk.LEFT, padx=2)
-        ttk.Button(buttons_frame, text="Use Custom Points", command=self.use_custom_points).pack(side=tk.LEFT, padx=2)
-        
+        ttk.Button(buttons_frame, text="Use These Points", command=self.use_custom_points, width =30).pack(side=tk.LEFT, padx=2)
+
         # Simulation buttons
         sim_frame = ttk.Frame(trajectory_tab)
         sim_frame.pack(fill=tk.X, pady=10)
         
-        ttk.Button(sim_frame, text="Update Preview", command=self.update_trajectory_preview).pack(fill=tk.X, pady=(0, 5))
-        ttk.Button(sim_frame, text="Run Simulation", command=self.run_simulation).pack(fill=tk.X)
-        
+        tk.Button(sim_frame, text="Run Simulation", command=self.run_simulation, 
+          height=3, font=("Arial", 14, "bold"), bg="#4CAF50", fg="Black").pack(fill=tk.X, pady=15)        
         # ======== MPC PARAMETERS TAB =========
         
         # Create a canvas with scrollbar for MPC parameters
@@ -369,16 +372,6 @@ class MPCTrajectoryGUI:
         self.last_point_marked = False
         self.update_plot_with_custom_points()
     
-    def mark_last_point(self):
-        """Mark the most recently added point as the last point in the trajectory"""
-        if not self.waypoints:
-            messagebox.showwarning("Warning", "No points to mark. Please add points first.")
-            return
-            
-        self.last_point_marked = True
-        self.log_message(f"Point {len(self.waypoints)-1} marked as the last point.")
-        self.update_plot_with_custom_points()
-    
     def use_custom_points(self):
         """Switch to using custom points for simulation"""
         if len(self.waypoints) < 3:
@@ -402,8 +395,8 @@ class MPCTrajectoryGUI:
         self.ax.set_aspect('equal')
         
         # Set fixed limits for custom trajectory editor
-        self.ax.set_xlim(-50, 50)
-        self.ax.set_ylim(-50, 50)
+        self.ax.set_xlim(-100, 100)
+        self.ax.set_ylim(-100, 100)
         
         # Plot waypoints
         if self.waypoints:
@@ -422,7 +415,7 @@ class MPCTrajectoryGUI:
                     self.ax.annotate(str(i), (x, y), textcoords="offset points", 
                                    xytext=(0, 10), ha='center')
         
-        title = "Trajectory Editor (Fixed -50 to 50 range)"
+        title = "Trajectory Editor (Fixed -100 to 100 range)"
         if self.last_point_marked:
             title += " - Last point marked"
         else:
@@ -464,8 +457,8 @@ class MPCTrajectoryGUI:
             
             # If we're viewing "custom" trajectory, use fixed limits
             if selected_trajectory == "custom":
-                self.ax.set_xlim(-50, 50)
-                self.ax.set_ylim(-50, 50)
+                self.ax.set_xlim(-100, 100)
+                self.ax.set_ylim(-100, 100)
             
             self.ax.plot(ax, ay, 'bo', label="Waypoints")
             self.ax.plot(cx, cy, 'r-', label="Spline Trajectory")
@@ -598,13 +591,24 @@ class MPCTrajectoryGUI:
             ax = [point[0] for point in waypoints]
             ay = [point[1] for point in waypoints]
             
-            # Generate spline curve
+            # Generate spline curve - directly use the cubic spline planner
+            # This matches the approach in the original code
             cx, cy, cyaw, ck, _ = cubic_spline_planner.calc_spline_course(ax, ay, ds=dl)
+            
+            # Special handling for switch_back trajectory
+            if selected_trajectory == "switchback":
+                # Apply yaw modification for the second part - like in original code
+                midpoint = len(ax) // 2
+                for i in range(midpoint, len(cyaw)):
+                    cyaw[i] = cyaw[i] - math.pi
+            
+            # Smooth the yaw angles
+            cyaw = mpc.smooth_yaw(cyaw)
             
             # Calculate speed profile
             sp = mpc.calc_speed_profile(cx, cy, cyaw, target_speed)
             
-            # Set initial state
+            # Set initial state exactly as in original code
             initial_state = mpc.State(x=cx[0], y=cy[0], yaw=cyaw[0], v=0.0)
             
             # Log current MPC parameters

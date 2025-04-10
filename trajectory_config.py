@@ -1,18 +1,41 @@
 """
 Configuration file for defining custom trajectories for MPC
 """
+import numpy as np
+from PathPlanning.CubicSpline import cubic_spline_planner
 
 # Define your waypoints as a list of (x, y) coordinates
 # The controller will generate a smooth path through these points
 
+def straight_path():
+    """Straight course path like in the original code"""
+    ax = [0.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0]
+    ay = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    waypoints = list(zip(ax, ay))
+    return waypoints
+
+def straight_path2():
+    """Slightly curved path like in the original code"""
+    ax = [0.0, -10.0, -20.0, -40.0, -50.0, -60.0, -70.0]
+    ay = [0.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0]
+    waypoints = list(zip(ax, ay))
+    return waypoints
+
+def forward_path():
+    """Forward course path from the original code"""
+    ax = [0.0, 60.0, 125.0, 50.0, 75.0, 30.0, -10.0]
+    ay = [0.0, 0.0, 50.0, 65.0, 30.0, 50.0, -20.0]
+    waypoints = list(zip(ax, ay))
+    return waypoints
+
 # Example: Circular path
 def circular_path():
-    import numpy as np
+    """Circular path - adjusted to match expected waypoint density"""
     radius = 30.0
     center_x, center_y = 50.0, 0.0
     
-    # Generate points along a circle
-    angles = np.linspace(0, 2*np.pi, 20)  # 20 points around the circle
+    # Generate fewer points along a circle - similar to original examples
+    angles = np.linspace(0, 2*np.pi, 12)  # Reduced from 20 to have fewer points
     waypoints = [(center_x + radius * np.cos(angle), 
                   center_y + radius * np.sin(angle)) for angle in angles]
     
@@ -20,23 +43,24 @@ def circular_path():
 
 # Example: Figure-8 path
 def figure_eight_path():
-    import numpy as np
+    """Figure-8 path - adjusted to match expected waypoint density"""
     radius = 30.0
     
-    # Generate points for a figure-8
-    angles = np.linspace(0, 2*np.pi, 40)  # 40 points around the figure-8
+    # Generate fewer points for the figure-8
+    angles = np.linspace(0, 2*np.pi, 16)  # Reduced from 40 to have fewer points
     waypoints = []
     
     for angle in angles:
         # Figure-8 parametric equations
         x = radius * np.cos(angle)
-        y = radius/2 * np.sin(2*angle)  # Note the 2*angle for figure-8
+        y = radius/2 * np.sin(2*angle)
         waypoints.append((x, y))
     
     return waypoints
 
 # Example: Slalom path
 def slalom_path():
+    """Slalom path with fewer points - similar to original examples"""
     waypoints = [
         (0.0, 0.0),
         (20.0, 10.0),
@@ -60,12 +84,15 @@ def my_custom_path():
 
 # Dictionary mapping trajectory names to functions
 TRAJECTORIES = {
-    "circular": circular_path,
-    "figure_eight": figure_eight_path,
-    "slalom": slalom_path,
-    "custom": my_custom_path,
+    "Straight": straight_path,
+    "Wavy": straight_path2,
+    "Spline": forward_path,
+    "Circular": circular_path,
+    "Eternity": figure_eight_path,
+    "Slalom": slalom_path,
+    "Custom": my_custom_path,
     # Students can add more here
 }
 
 # The default trajectory to use
-DEFAULT_TRAJECTORY = "circular"
+DEFAULT_TRAJECTORY = "Straight"
