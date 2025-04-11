@@ -95,4 +95,4 @@ TRAJECTORIES = {
 }
 
 # The default trajectory to use
-DEFAULT_TRAJECTORY = "Straight"
+DEFAULT_TRAJECTORY = "Eternity"
