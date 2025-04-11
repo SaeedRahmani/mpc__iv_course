@@ -13,7 +13,7 @@ conda activate ivcourse
 
 ### Prerequisites
 
-This project requires Python 3.6+ and the following libraries:
+This project was tested on Python 3.10+ and requires the following libraries:
 - numpy
 - scipy
 - matplotlib
@@ -23,7 +23,7 @@ This project requires Python 3.6+ and the following libraries:
 Install these dependencies using pip:
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 # OR
 # pip install numpy scipy matplotlib cvxpy
 ```
@@ -46,14 +46,15 @@ pip install tk
 
 ```
 .
-├── README.md
 ├── trajectory_config.py        # Define custom trajectories here
 ├── mpc.py                      # Core MPC implementation
 ├── run_gui.py                  # Entry point for the GUI application
-├── gui/                        # GUI module directory
+├── README.md                   # This file
+├── requirements.txt            # For installing the dependencies
+├── gui/                        # GUI module directory. You won't need it probably
 │   ├── __init__.py             # Package initialization
 │   └── gui.py                  # Main GUI implementation
-├── utils/                      # Utility functions
+├── utils/                      # Utility functions. You won't need it probably
 │   ├── angle.py                # Angle manipulation utilities
 │   ├── cubic_spline_planner.py # Cubic spline implementation
 │   └── plot.py                 # Plotting utilities
@@ -61,21 +62,7 @@ pip install tk
 
 ## Usage Options
 
-### Option 1: Using Command Line
-
-Run the command-line version to test predefined trajectories with your MPC implementation:
-
-```bash
-python mpc.py --trajectory circular --speed 10.0
-```
-
-Available options:
-- `--trajectory` or `-t`: Choose from predefined trajectories (`Straight`, `Wavy`, `Spline`, `Circular`, `Eternity`, `Slalom`, `Custom`)
-- `--speed` or `-s`: Target speed in km/h (default: 10.0)
-- `--dl`: Distance between interpolated points (default: 1.0)
-- `--no-animation`: Disable animation for faster computation
-
-### Option 2: Using the GUI (Recommended)
+### Option 1: Using the GUI (Recommended)
 
 Run the GUI version for interactive trajectory design and MPC parameter tuning:
 
@@ -97,11 +84,25 @@ With the GUI, you can:
 - Run simulations and visualize results
 - View simulation logs
 
+### Option 1: Using Command Line
+
+Run the command-line version to test predefined trajectories with your MPC implementation:
+
+```bash
+python mpc.py --trajectory circular --speed 10.0
+```
+
+Available options:
+- `--trajectory` or `-t`: Choose from predefined trajectories (`Straight`, `Wavy`, `Spline`, `Circular`, `Eternity`, `Slalom`, `Custom`)
+- `--speed` or `-s`: Target speed in km/h (default: 10.0)
+- `--dl`: Distance between interpolated points (default: 1.0)
+- `--no-animation`: Disable animation for faster computation
+
 ## Creating Your Own Trajectories
 
 ### Method 1: Using the GUI (Recommended)
 
-1. Launch the GUI by running `python run_gui.py`
+1. Launch the GUI by running `python run_gui.py` (when you are in the root directory of the project.)
 2. In the Trajectory tab, select "Custom" from the dropdown
 3. Click "Clear Points" to start fresh
 4. Click on the plot area to place waypoints for your custom trajectory
@@ -112,12 +113,12 @@ With the GUI, you can:
 8. What do you observe? Try to improve the performance of the trajectory following by changing both the parameters of MPC and reference trajectory
 9. What is the effect of vehicle parameters?
 
-### Method 2: Editing the Configuration File
+### Method 2: Editing the Configuration File (More advanced and flexible)
 
 Open `trajectory_config.py` and add your own function that returns a list of (x, y) waypoints:
 
 ```python
-def my_custom_path():
+def my_custom_trajectory():
     # Define your waypoints as a list of (x, y) coordinates
     waypoints = [
         (0.0, 0.0),    # Starting point
@@ -128,7 +129,7 @@ def my_custom_path():
     return waypoints
 
 # Add your function to the TRAJECTORIES dictionary
-TRAJECTORIES["my_custom"] = my_custom_path
+TRAJECTORIES["my_custom"] = my_custom_trajectory
 ```
 
 ## Tuning MPC Parameters
@@ -168,7 +169,7 @@ The GUI provides comprehensive options for tuning the MPC controller:
 
 The implemented MPC controller uses:
 - A kinematic bicycle model for vehicle dynamics
-- Linearization at the operating point for efficient optimization
+- Linearization of the bicycle model for efficient optimization
 - Iterative optimization to handle nonlinearities
 - CVXPY with the CLARABEL solver for solving the optimization problem (check what is the effect of solver on the performance)
 
@@ -181,8 +182,8 @@ The cost function includes:
 
 The simulation outputs:
 - Trajectory tracking visualization
-- Speed profile over time (Can you add it?)
-- Steering angles over time (Can you add it?)
+- Speed profile over time 
+- Steering angles over time 
 - Simulation logs with performance metrics (what is missing? Can you add it?)
 
 The log tab in the GUI provides detailed information about:
@@ -194,13 +195,12 @@ The log tab in the GUI provides detailed information about:
 ## Troubleshooting
 
 - **Solver Errors**: These may indicate an infeasible trajectory or too aggressive constraints
-  - Try reducing the target speed
-  - Increase the prediction horizon
+  - Try changing the target speed
+  - Change the prediction horizon
   - Adjust the cost weights to prioritize different aspects
 
 - **Slow Simulation**: For faster execution:
-  - Use the command-line version with `--no-animation`
-  - Reduce the prediction horizon (T)
+  - Reduce the prediction horizon (T) -- But be aware of the effects 
   - Increase the time step (DT)
 
 - **Path Following Issues**: If the vehicle struggles to follow the path:
@@ -211,7 +211,7 @@ The log tab in the GUI provides detailed information about:
 
 ## License
 
-This project is provided for educational purposes.
+This project is provided for educational purposes. Is is developed and maintained by Saeed Rahmani (https://github.com/SaeedRahmani)
 
 ## Acknowledgments
 
