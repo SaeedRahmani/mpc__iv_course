@@ -47,12 +47,13 @@ pip install tk
 ├── README.md
 ├── trajectory_config.py        # Define custom trajectories here
 ├── mpc.py                      # Core MPC implementation
-├── run_gui.py                  # GUI for trajectory design and MPC parameter tuning
-├── PathPlanning/               # Library folder for path planning
-│   └── CubicSpline/
-│       └── cubic_spline_planner.py
+├── run_gui.py                  # Entry point for the GUI application
+├── gui/                        # GUI module directory
+│   ├── __init__.py             # Package initialization
+│   └── gui.py                  # Main GUI implementation
 ├── utils/                      # Utility functions
 │   ├── angle.py                # Angle manipulation utilities
+│   ├── cubic_spline_planner.py # Cubic spline implementation
 │   └── plot.py                 # Plotting utilities
 ```
 
@@ -67,7 +68,7 @@ python mpc.py --trajectory circular --speed 10.0
 ```
 
 Available options:
-- `--trajectory` or `-t`: Choose from predefined trajectories (`straight`, `wavy`, `spline`, `circular`, `eternity`, `slalom`, `custom`)
+- `--trajectory` or `-t`: Choose from predefined trajectories (`Straight`, `Wavy`, `Spline`, `Circular`, `Eternity`, `Slalom`, `Custom`)
 - `--speed` or `-s`: Target speed in km/h (default: 10.0)
 - `--dl`: Distance between interpolated points (default: 1.0)
 - `--no-animation`: Disable animation for faster computation
@@ -79,6 +80,11 @@ Run the GUI version for interactive trajectory design and MPC parameter tuning:
 ```bash
 python run_gui.py
 ```
+
+The GUI application follows a modular design:
+- `run_gui.py`: Entry point for launching the application
+- `gui/gui.py`: Contains the actual GUI implementation
+- `gui/__init__.py`: Makes the GUI components easily importable
 
 With the GUI, you can:
 - Select from predefined trajectories
@@ -99,7 +105,7 @@ With the GUI, you can:
 4. Click on the plot area to place waypoints for your custom trajectory
    - The plot area is fixed from -100 to 100 in both x and y coordinates
 5. When you've finished adding points, click "Use These Points"
-6. Optiona: At each time, click "Update Preview" to see the spline trajectory
+6. Optional: At each time, click "Update Preview" to see the spline trajectory
 7. Click "Run Simulation" to test your trajectory with the MPC controller
 8. What do you observe? Try to improve the performance of the trajectory following by changing both the parameters of MPC and reference trajectory
 9. What is the effect of vehicle parameters?
