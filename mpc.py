@@ -620,29 +620,27 @@ def main():
     elapsed_time = time.time() - start_time
     print(f"Simulation completed in {elapsed_time:.4f} seconds")
     
-    # Plot results if animation was disabled
-    if args.no_animation:
-        plt.figure(figsize=(12, 9))
-        
-        plt.subplot(2, 1, 1)
-        plt.plot(cx, cy, "-r", label="reference path")
-        plt.plot(x, y, "-g", label="tracking path")
-        plt.grid(True)
-        plt.axis("equal")
-        plt.xlabel("x[m]")
-        plt.ylabel("y[m]")
-        plt.legend()
-        plt.title(f"Trajectory: {args.trajectory}")
-        
-        plt.subplot(2, 1, 2)
-        plt.plot(t, [speed * 3.6 for speed in v], "-r", label="speed")
-        plt.grid(True)
-        plt.xlabel("Time [s]")
-        plt.ylabel("Speed [km/h]")
-        plt.legend()
-        
-        plt.tight_layout()
-        plt.show()
+    plt.figure(figsize=(12, 9))
+    
+    plt.subplot(2, 1, 1)
+    plt.plot(cx, cy, "-r", label="reference path")
+    plt.plot(x, y, "-g", label="tracking path")
+    plt.grid(True)
+    plt.axis("equal")
+    plt.xlabel("x[m]")
+    plt.ylabel("y[m]")
+    plt.legend()
+    plt.title(f"Trajectory: {args.trajectory}")
+    
+    plt.subplot(2, 1, 2)
+    plt.plot(t, [speed * 3.6 for speed in v], "-r", label="speed")
+    plt.grid(True)
+    plt.xlabel("Time [s]")
+    plt.ylabel("Speed [km/h]")
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.show()
         
 # def main():
 #     print(__file__ + " start!!")
