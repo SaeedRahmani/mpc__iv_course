@@ -23,7 +23,9 @@ This project requires Python 3.6+ and the following libraries:
 Install these dependencies using pip:
 
 ```bash
-pip install numpy scipy matplotlib cvxpy
+pip install requirements.txt
+# OR
+# pip install numpy scipy matplotlib cvxpy
 ```
 
 Note: tkinter is usually included with Python installations, but if needed:
