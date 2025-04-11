@@ -2,7 +2,7 @@
 Configuration file for defining custom trajectories for MPC
 """
 import numpy as np
-from PathPlanning.CubicSpline import cubic_spline_planner
+from utils import cubic_spline_planner
 
 # Define your waypoints as a list of (x, y) coordinates
 # The controller will generate a smooth path through these points

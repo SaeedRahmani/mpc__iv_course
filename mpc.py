@@ -18,14 +18,14 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
 
 # Import from the project
 from utils.angle import angle_mod
-from PathPlanning.CubicSpline import cubic_spline_planner
+from utils import cubic_spline_planner
 # from PathTracking.model_predictive_speed_and_steer_control.model_predictive_speed_and_steer_control import (
 #     State, do_simulation, calc_speed_profile, TARGET_SPEED
 # )
 # Import your trajectory configuration
 from trajectory_config import TRAJECTORIES, DEFAULT_TRAJECTORY
 
-from PathPlanning.CubicSpline import cubic_spline_planner
+from utils import cubic_spline_planner
 
 NX = 4  # x = x, y, v, yaw
 NU = 2  # a = [accel, steer]
