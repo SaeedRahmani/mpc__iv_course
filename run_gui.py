@@ -35,6 +35,12 @@ def main():
     app.log_message("\nReady to start! Select a trajectory or create your own.")
     app.log_message("==================================================")
     
+    # Make the window appear on top
+    root.lift()           # Bring window to top
+    root.attributes('-topmost', True)  # Keep on top
+    root.after_idle(root.attributes, '-topmost', False)  # Allow to go behind other windows after
+    root.focus_force()  
+    
     # Start the Tkinter event loop
     root.mainloop()
 
