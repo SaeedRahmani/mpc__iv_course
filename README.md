@@ -3,13 +3,18 @@
 This project allows you to test Model Predictive Control (MPC) algorithms on custom trajectories for autonomous vehicle path tracking. It features both a command-line interface and a graphical user interface for trajectory design and MPC parameter tuning.
 
 ## Getting Started
+Install miniconda using the instructions here: https://www.anaconda.com/docs/getting-started/miniconda/install
 
-Setting up your conda environment (miniconda is recommended for easy package management)
+### Setting up your conda environment (miniconda is recommended for easy package management)
+
+- Search Anaconda Prompt on Windows (or use a normal terminal on Ubuntu and Mac)
+- Run the following codes in Anaconda Prompt or terminal:
 
 ```bash
 conda create -n ivcourse python=3.12
 conda activate ivcourse
 ```
+- The above lines first make a new virtual environment for your project, called "ivcourse." This makes sure that any package that you install, is installed separated from other projects on your system.
 
 ### Prerequisites
 
@@ -20,12 +25,13 @@ This project was tested on Python 3.10+ and requires the following libraries:
 - cvxpy (for solving optimization problems)
 - tkinter (for the GUI)
 
-Install these dependencies using pip:
-
+### Install the above dependencies using pip:
+- Make sure that the ivcourse environment is activated (conda activate ivcourse)
+- run the following (if pip does not work, use pip3)
 ```bash
 pip install -r requirements.txt
-# OR
-# pip install numpy scipy matplotlib cvxpy
+# OR if you cannot fine the requirements.txt file, copy the following line and press enter in the Anaconda Prompt or your terminal
+# pip install numpy scipy matplotlib cvxpy tkinter
 ```
 
 Note: tkinter is usually included with Python installations, but if needed:
@@ -43,6 +49,7 @@ pip install tk
 ```
 
 ### File Structure
+Make sure that you aer always in the root folder, which means that you are at the highest level folder and not inside the sub-folders. to know where you are, in Anaconda Prompt or Windows Terminal write "dir". You can use "cd" command to change folders. For example, "cd .." goes one level up and " cd FOLDER_NAME" goes to the folder that has the name FOLDER_NAME.
 
 ```
 .
@@ -64,10 +71,11 @@ pip install tk
 
 ### Option 1: Using the GUI (Recommended)
 
-Run the GUI version for interactive trajectory design and MPC parameter tuning:
+Run the GUI version for interactive trajectory design and MPC parameter tuning: (if python does not work, use python3)
 
 ```bash
 python run_gui.py
+# python3 run_gui.py
 ```
 
 The GUI application follows a modular design:
@@ -86,10 +94,11 @@ With the GUI, you can:
 
 ### Option 1: Using Command Line
 
-Run the command-line version to test predefined trajectories with your MPC implementation:
+Run the command-line version to test predefined trajectories with your MPC implementation: (or use python3)
 
 ```bash
 python mpc.py --trajectory circular --speed 10.0
+#python3 mpc.py --trajectory circular --speed 10.0
 ```
 
 Available options:
